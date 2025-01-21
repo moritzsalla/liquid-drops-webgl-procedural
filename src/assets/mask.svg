@@ -1,0 +1,29 @@
+<svg
+  id='mask'
+  width='350'
+  height='350'
+  viewBox='0 0 350 350'
+  fill='none'
+  xmlns='http://www.w3.org/2000/svg'
+>
+  <path
+    d='M347.156 174.315C347.156 260.185 262.339 349.999 183.171 349.999C85.7929 349.999 0 270.587 0 174.315C0 78.0436 90.4413 0 176.319 0C273.697 0 347.156 78.0436 347.156 174.315Z'
+    fill='url(#paint0_radial_1913_2594)'
+  />
+  <defs>
+    <radialGradient
+      id='paint0_radial_1913_2594'
+      cx='0'
+      cy='0'
+      r='1'
+      gradientUnits='userSpaceOnUse'
+      gradientTransform='translate(173.66 174.999) rotate(90) scale(174.999 173.66)'
+    >
+      <stop offset='0' stop-color='white' />
+      <stop offset='0.7' stop-color='white' />
+      <stop offset='0.85' stop-color='white' stop-opacity='0.9' />
+      <stop offset='0.95' stop-color='white' stop-opacity='0.7' />
+      <stop offset='1' stop-color='black' />
+    </radialGradient>
+  </defs>
+</svg>
