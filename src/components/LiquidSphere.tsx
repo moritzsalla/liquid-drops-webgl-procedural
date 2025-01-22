@@ -1,10 +1,10 @@
 import { animated } from "@react-spring/three";
-import { GizmoHelper, GizmoViewport, Grid, Stats } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { FRAGMENT_SHADER } from "./shaders/fragment";
 import { VERTEX_SHADER } from "./shaders/vertex";
+import { random } from "./random";
 
 type Color = [number, number, number, number];
 type Colors = {
@@ -120,72 +120,5 @@ export const LiquidSphere = ({
         lights={true}
       />
     </animated.mesh>
-  );
-};
-
-const random = (min: number, max: number) => Math.random() * (max - min) + min;
-
-export const DevHelpers = () => {
-  return (
-    <>
-      <Grid
-        args={[20, 20]}
-        cellSize={1}
-        cellThickness={1}
-        cellColor="#6f6f6f"
-        sectionSize={5}
-      />
-      <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
-        <GizmoViewport
-          axisColors={["red", "green", "blue"]}
-          labelColor="black"
-        />
-      </GizmoHelper>
-      <Stats />
-    </>
-  );
-};
-
-export const Lights = () => {
-  return (
-    <>
-      {/* Main directional light */}
-      <directionalLight
-        position={[0, 0, 20]}
-        intensity={0.4}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={50}
-        shadow-camera-left={-50}
-        shadow-camera-right={50}
-        shadow-camera-top={50}
-        shadow-camera-bottom={-50}
-        shadow-bias={-0.0001}
-      />
-      {/* Fill light */}
-      {/* <directionalLight position={[-5, 3, 0]} intensity={0.4} color="#b1e1ff" /> */}
-      {/* Ambient light */}
-      {/* <ambientLight intensity={0.2} /> */}
-    </>
-  );
-};
-
-export const Plane = () => {
-  return (
-    <mesh
-      position={[0, 0, -3]}
-      rotation={[0, -Math.PI, 0]}
-      scale={[20, 20, 1]}
-      receiveShadow // Add this
-    >
-      <planeGeometry args={[20, 20]} />
-      <meshStandardMaterial
-        color="pink"
-        side={THREE.DoubleSide}
-        opacity={0.5}
-        transparent={true}
-      />
-    </mesh>
   );
 };
