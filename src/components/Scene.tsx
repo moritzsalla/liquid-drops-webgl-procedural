@@ -167,21 +167,24 @@ export const Scene = () => {
     },
   });
 
-  const shaderConfig = useMemo(() => ({
-    vertex: {
-      distortionAmount: shader.distortionAmount,
-      timeScale: shader.timeScale,
-      distortionWeights: shader.distortionWeights as [number, number, number],
-    },
-    fragment: {
-      noiseScale: shader.noiseScale,
-      noiseSpeed: shader.noiseSpeed,
-      noiseIntensity: shader.noiseIntensity,
-      noiseWeights: shader.noiseWeights as [number, number, number],
-      blendSoftness: shader.blendSoftness,
-      flowSpeed: shader.flowSpeed,
-    },
-  }), [shader]);
+  const shaderConfig = useMemo(
+    () => ({
+      vertex: {
+        distortionAmount: shader.distortionAmount,
+        timeScale: shader.timeScale,
+        distortionWeights: shader.distortionWeights as [number, number, number],
+      },
+      fragment: {
+        noiseScale: shader.noiseScale,
+        noiseSpeed: shader.noiseSpeed,
+        noiseIntensity: shader.noiseIntensity,
+        noiseWeights: shader.noiseWeights as [number, number, number],
+        blendSoftness: shader.blendSoftness,
+        flowSpeed: shader.flowSpeed,
+      },
+    }),
+    [shader]
+  );
 
   return (
     <Canvas

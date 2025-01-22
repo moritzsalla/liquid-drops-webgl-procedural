@@ -1,6 +1,12 @@
 type UniformValue = number | number[];
 type UniformMap = Map<string, WebGLUniformLocation | null>;
 
+
+/**
+ * Custom WebGL fragment shader renderer.
+ * We'll likely drop this in favor of a more robust solution using Three.js.
+ */
+
 // Improvement: only calc u_dimensions on resize.
 export class WebFrag {
 	private gl: WebGLRenderingContext;
