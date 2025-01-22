@@ -6,8 +6,6 @@ import * as THREE from "three";
 import { FRAGMENT_SHADER } from "./shaders/fragment";
 import { VERTEX_SHADER } from "./shaders/vertex";
 
-const WIREFRAME = true;
-
 type Color = [number, number, number, number];
 type Colors = {
   u_color_0: { value: Color };
@@ -15,34 +13,83 @@ type Colors = {
   u_color_2: { value: Color };
 };
 
+export type ShaderConfig = {
+  vertex: {
+    distortionAmount: number;
+    timeScale: number;
+    distortionWeights?: [number, number, number];
+  };
+  fragment: {
+    noiseScale: number;
+    noiseSpeed: number;
+    noiseIntensity: number;
+    noiseWeights?: [number, number, number];
+    blendSoftness: number;
+    flowSpeed: number;
+  };
+};
+
+type LiquidSphereProps = {
+  scale?: any;
+  position?: [number, number, number];
+  colors: Colors;
+  wireframe?: boolean;
+  shaderConfig: ShaderConfig;
+};
+
 export const LiquidSphere = ({
   scale = [1, 1, 1],
   position = [0, 0, 0],
   colors,
-}: {
-  scale?: any;
-  position?: [number, number, number];
-  colors: Colors;
-}) => {
+  wireframe = false,
+  shaderConfig,
+}: LiquidSphereProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
   // Combine our custom uniforms with Three.js built-in uniforms
   const uniforms = useRef({
-    ...THREE.UniformsLib.lights, // Add Three.js light uniforms
+    ...THREE.UniformsLib.lights,
     u_resolution: { value: [0, 0] },
     u_time_offset: { value: random(0, 100) },
     u_time: { value: 0 },
-    u_noiseScale: { value: 0.3 },
-    u_noiseSpeed: { value: 0.5 },
-    u_noiseIntensity: { value: 0.7 },
-    u_noiseWeights: { value: [0.5, 0.3, 0.2] },
-    u_blendSoftness: { value: 0.4 },
-    u_flowSpeed: { value: 0.4 },
+
+    // Vertex shader uniforms
+    u_distortionAmount: { value: shaderConfig.vertex.distortionAmount },
+    u_timeScale: { value: shaderConfig.vertex.timeScale },
+    u_distortionWeights: {
+      value: shaderConfig.vertex.distortionWeights || [1.0, 1.0, 1.0],
+    },
+
+    // Fragment shader uniforms
+    u_noiseScale: { value: shaderConfig.fragment.noiseScale },
+    u_noiseSpeed: { value: shaderConfig.fragment.noiseSpeed },
+    u_noiseIntensity: { value: shaderConfig.fragment.noiseIntensity },
+    u_noiseWeights: {
+      value: shaderConfig.fragment.noiseWeights || [0.5, 0.3, 0.2],
+    },
+    u_blendSoftness: { value: shaderConfig.fragment.blendSoftness },
+    u_flowSpeed: { value: shaderConfig.fragment.flowSpeed },
+
+    // Other uniforms
     u_offset: { value: [random(0, 10), random(0, 10)] },
     u_camera_position: { value: new THREE.Vector3() },
     u_light_position: { value: new THREE.Vector3(-40, 40, 10) },
     ...colors,
   });
+
+  // Update uniforms when config changes
+  useEffect(() => {
+    uniforms.current.u_distortionAmount.value =
+      shaderConfig.vertex.distortionAmount;
+    uniforms.current.u_timeScale.value = shaderConfig.vertex.timeScale;
+    uniforms.current.u_noiseScale.value = shaderConfig.fragment.noiseScale;
+    uniforms.current.u_noiseSpeed.value = shaderConfig.fragment.noiseSpeed;
+    uniforms.current.u_noiseIntensity.value =
+      shaderConfig.fragment.noiseIntensity;
+    uniforms.current.u_blendSoftness.value =
+      shaderConfig.fragment.blendSoftness;
+    uniforms.current.u_flowSpeed.value = shaderConfig.fragment.flowSpeed;
+  }, [shaderConfig]);
 
   useEffect(() => {
     uniforms.current.u_resolution.value = [
@@ -68,7 +115,7 @@ export const LiquidSphere = ({
         transparent
         opacity={1}
         side={THREE.DoubleSide}
-        wireframe={WIREFRAME}
+        wireframe={wireframe}
         shadowSide={THREE.DoubleSide}
         lights={true}
       />

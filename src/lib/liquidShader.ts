@@ -1,85 +1,122 @@
-export const LIQUID_FRAGMENT_SHADER = `#ifdef GL_ES
-precision highp float;
-#endif
+import { animated } from "@react-spring/three";
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { FRAGMENT_SHADER } from "./shaders/fragment";
+import { VERTEX_SHADER } from "./shaders/vertex";
 
-uniform vec2 u_resolution;
-uniform float u_time;
-uniform vec4 u_color_0;
-uniform vec4 u_color_1;
-uniform vec4 u_color_2;
-uniform float u_noiseScale;
-uniform float u_noiseSpeed;
-uniform float u_noiseIntensity;
-uniform vec3 u_noiseWeights;
-uniform float u_blendSoftness;
-uniform float u_flowSpeed;
+type Color = [number, number, number, number];
+type Colors = {
+  u_color_0: { value: Color };
+  u_color_1: { value: Color };
+  u_color_2: { value: Color };
+};
 
-// Improved noise function for smoother gradients
-vec2 random2(vec2 st) {
-    st = vec2(dot(st,vec2(127.1,311.7)), dot(st,vec2(269.5,183.3)));
-    return -1.0 + 2.0 * fract(sin(st) * 43758.5453123);
-}
+export type ShaderConfig = {
+  vertex: {
+    distortionAmount: number;
+    timeScale: number;
+    distortionWeights?: [number, number, number];
+  };
+  fragment: {
+    noiseScale: number;
+    noiseSpeed: number;
+    noiseIntensity: number;
+    noiseWeights?: [number, number, number];
+    blendSoftness: number;
+    flowSpeed: number;
+  };
+};
 
-// Smooth noise implementation
-float noise(vec2 st) {
-    vec2 i = floor(st);
-    vec2 f = fract(st);
-    
-    // Quintic interpolation curve
-    vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-    
-    float a = dot(random2(i), f);
-    float b = dot(random2(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0));
-    float c = dot(random2(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0));
-    float d = dot(random2(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0));
-    
-    return mix(
-        mix(a, b, u.x),
-        mix(c, d, u.x),
-        u.y
-    );
-}
+type LiquidSphereProps = {
+  scale?: any;
+  position?: [number, number, number];
+  colors: Colors;
+  wireframe?: boolean;
+  shaderConfig: ShaderConfig;
+};
 
-// Smooth blend function
-float smoothBlend(float value, float softness) {
-    return smoothstep(0.0, softness, value) * (1.0 - smoothstep(1.0 - softness, 1.0, value));
-}
+export const LiquidSphere = ({
+  scale = [1, 1, 1],
+  position = [0, 0, 0],
+  colors,
+  wireframe = false,
+  shaderConfig,
+}: LiquidSphereProps) => {
+  const meshRef = useRef<THREE.Mesh>(null);
 
-void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution;
+  // Combine our custom uniforms with Three.js built-in uniforms
+  const uniforms = useRef({
+    ...THREE.UniformsLib.lights,
+    u_resolution: { value: [0, 0] },
+    u_time_offset: { value: random(0, 100) },
+    u_time: { value: 0 },
     
-    // Create flowing movement
-    float flowTime = u_time * u_flowSpeed;
-    vec2 flow = vec2(
-        sin(flowTime * 0.5) * 0.5,
-        cos(flowTime * 0.3) * 0.5
-    );
+    // Vertex shader uniforms
+    u_distortionAmount: { value: shaderConfig.vertex.distortionAmount },
+    u_timeScale: { value: shaderConfig.vertex.timeScale },
+    u_distortionWeights: { 
+      value: shaderConfig.vertex.distortionWeights || [1.0, 1.0, 1.0] 
+    },
     
-    // Layer multiple noise functions for organic movement
-    float n1 = noise((uv + flow) * u_noiseScale);
-    float n2 = noise((uv - flow * 0.8) * u_noiseScale * 1.5);
-    float n3 = noise((uv + flow * 1.2) * u_noiseScale * 2.0);
+    // Fragment shader uniforms
+    u_noiseScale: { value: shaderConfig.fragment.noiseScale },
+    u_noiseSpeed: { value: shaderConfig.fragment.noiseSpeed },
+    u_noiseIntensity: { value: shaderConfig.fragment.noiseIntensity },
+    u_noiseWeights: { 
+      value: shaderConfig.fragment.noiseWeights || [0.5, 0.3, 0.2] 
+    },
+    u_blendSoftness: { value: shaderConfig.fragment.blendSoftness },
+    u_flowSpeed: { value: shaderConfig.fragment.flowSpeed },
     
-    // Combine noise layers with weights
-    float combined = (
-        n1 * u_noiseWeights.x +
-        n2 * u_noiseWeights.y +
-        n3 * u_noiseWeights.z
-    ) / (u_noiseWeights.x + u_noiseWeights.y + u_noiseWeights.z);
-    
-    // Apply intensity and smoothing
-    combined = mix(0.5, combined, u_noiseIntensity);
-    combined = smoothBlend(combined, u_blendSoftness);
-    
-    // Smooth color mixing
-    vec4 color;
-    if (combined < 0.5) {
-        float t = smoothstep(0.0, 0.5, combined);
-        color = mix(u_color_0, u_color_1, t);
-    } else {
-        float t = smoothstep(0.5, 1.0, combined);
-        color = mix(u_color_1, u_color_2, t);
+    // Other uniforms
+    u_offset: { value: [random(0, 10), random(0, 10)] },
+    u_camera_position: { value: new THREE.Vector3() },
+    u_light_position: { value: new THREE.Vector3(-40, 40, 10) },
+    ...colors,
+  });
+
+  // Update uniforms when config changes
+  useEffect(() => {
+    uniforms.current.u_distortionAmount.value = shaderConfig.vertex.distortionAmount;
+    uniforms.current.u_timeScale.value = shaderConfig.vertex.timeScale;
+    uniforms.current.u_noiseScale.value = shaderConfig.fragment.noiseScale;
+    uniforms.current.u_noiseSpeed.value = shaderConfig.fragment.noiseSpeed;
+    uniforms.current.u_noiseIntensity.value = shaderConfig.fragment.noiseIntensity;
+    uniforms.current.u_blendSoftness.value = shaderConfig.fragment.blendSoftness;
+    uniforms.current.u_flowSpeed.value = shaderConfig.fragment.flowSpeed;
+  }, [shaderConfig]);
+
+  useEffect(() => {
+    uniforms.current.u_resolution.value = [
+      window.innerWidth,
+      window.innerHeight,
+    ];
+  }, []);
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      uniforms.current.u_time.value = state.clock.elapsedTime;
+      uniforms.current.u_camera_position.value = state.camera.position;
     }
-    
-    gl_FragColor = color;
-}`;
+  });
+
+  return (
+    <animated.mesh ref={meshRef} scale={scale} position={position} castShadow>
+      <sphereGeometry args={[1, 64, 64]} />
+      <shaderMaterial
+        vertexShader={VERTEX_SHADER}
+        fragmentShader={FRAGMENT_SHADER}
+        uniforms={uniforms.current}
+        transparent
+        opacity={1}
+        side={THREE.DoubleSide}
+        wireframe={wireframe}
+        shadowSide={THREE.DoubleSide}
+        lights={true}
+      />
+    </animated.mesh>
+  );
+};
+
+const random = (min: number, max: number) => Math.random() * (max - min) + min;
