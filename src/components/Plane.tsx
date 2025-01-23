@@ -5,7 +5,7 @@ export const Plane = () => {
     <mesh
       position={[0, 0, -3]}
       rotation={[0, -Math.PI, 0]}
-      scale={[20, 20, 1]}
+      scale={[2, 2, 1]}
       receiveShadow // Add this
     >
       <planeGeometry args={[20, 20]} />

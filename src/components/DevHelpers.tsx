@@ -4,13 +4,13 @@ export const DevHelpers = () => {
   return (
     <>
       <Grid
-        args={[20, 20]}
-        cellSize={1}
+        args={[25, 10]}
+        cellSize={2}
         cellThickness={1}
-        cellColor="#6f6f6f"
-        sectionSize={5}
+        cellColor="black"
+        sectionSize={2}
       />
-      <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+      <GizmoHelper alignment="bottom-left" margin={[80, 80]}>
         <GizmoViewport
           axisColors={["red", "green", "blue"]}
           labelColor="black"

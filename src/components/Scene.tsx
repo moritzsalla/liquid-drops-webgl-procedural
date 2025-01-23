@@ -113,7 +113,7 @@ export const Scene = () => {
 
   const shader = useControls({
     distortionAmount: {
-      value: 0.095,
+      value: 0.1,
       min: 0,
       max: 0.5,
       step: 0.001,
@@ -141,14 +141,14 @@ export const Scene = () => {
       label: "Noise Scale",
     },
     noiseSpeed: {
-      value: 0.5,
+      value: 0.6,
       min: 0,
       max: 2,
       step: 0.1,
       label: "Noise Speed",
     },
     noiseIntensity: {
-      value: 0.7,
+      value: 0.8,
       min: 0,
       max: 1,
       step: 0.1,
@@ -162,14 +162,14 @@ export const Scene = () => {
       label: "Noise Weights",
     },
     blendSoftness: {
-      value: 0.4,
+      value: 0.6,
       min: 0,
       max: 1,
       step: 0.1,
       label: "Blend Softness",
     },
     flowSpeed: {
-      value: 0.4,
+      value: 0.9,
       min: 0,
       max: 2,
       step: 0.1,
@@ -222,7 +222,13 @@ export const Scene = () => {
       {viewport.showControls && <OrbitControls />}
 
       <Lights />
-      <OrthographicCamera makeDefault zoom={50} position={[0, 0, 20]} />
+      <OrthographicCamera
+        makeDefault
+        zoom={50}
+        position={[0, 0, 20]}
+        near={-100}
+        far={100}
+      />
       {plane.enabled && <Plane />}
 
       {!metaballs.enabled ? (
