@@ -219,7 +219,7 @@ export const Scene = () => {
       )}
 
       {viewport.debug && <DevHelpers />}
-      {viewport.showControls && <OrbitControls />}
+      {viewport.showControls && <OrbitControls makeDefault />}
 
       <Lights />
       <OrthographicCamera
