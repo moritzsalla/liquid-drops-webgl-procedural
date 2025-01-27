@@ -2,9 +2,8 @@ import { animated } from "@react-spring/three";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { FRAGMENT_SHADER } from "./shaders/fragment";
-import { VERTEX_SHADER } from "./shaders/vertex";
-import { random } from "./random";
+import { FRAGMENT_SHADER, VERTEX_SHADER } from "../shaders/sphereShaders";
+import { random } from "../utils/random";
 
 type Color = [number, number, number, number];
 type Colors = {

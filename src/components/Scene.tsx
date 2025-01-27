@@ -9,16 +9,119 @@ import { Lights } from "./Lights";
 import { Plane } from "./Plane";
 import { DevHelpers } from "./DevHelpers";
 import { useControls } from "leva";
-import { useMemo } from "react";
-import { hexToRGBA } from "./hexToRGBA";
 import { MetaballEffect } from "./MetaballEffect";
+import { hexToRGBA } from "../utils/random";
 
 export type SphereData = {
-  positions: [number, number, number][];
-  colors: { value: string }[][];
+  positions: Array<[number, number, number]>;
+  colors: Array<Array<{ value: string }>>;
 };
 
 export const Scene = () => {
+  const {
+    viewport,
+    metaballs,
+    renderer,
+    plane,
+    shader,
+    shadows,
+    sphere1,
+    sphere2,
+    sphere3,
+  } = useConfig();
+
+  const shaderConfig = {
+    vertex: {
+      distortionAmount: shader.distortionAmount,
+      timeScale: shader.timeScale,
+      distortionWeights: shader.distortionWeights as [number, number, number],
+    },
+    fragment: {
+      noiseScale: shader.noiseScale,
+      noiseSpeed: shader.noiseSpeed,
+      noiseIntensity: shader.noiseIntensity,
+      noiseWeights: shader.noiseWeights as [number, number, number],
+      blendSoftness: shader.blendSoftness,
+      flowSpeed: shader.flowSpeed,
+    },
+  };
+
+  return (
+    <Canvas
+      shadows
+      gl={{
+        powerPreference: renderer.powerPreference as WebGLPowerPreference,
+        alpha: renderer.alpha,
+        antialias: renderer.antialias,
+        stencil: renderer.stencil,
+        depth: renderer.depth,
+      }}
+    >
+      {shadows.enabled && (
+        <SoftShadows size={shadows.size} samples={shadows.samples} />
+      )}
+
+      {viewport.debug && <DevHelpers />}
+      {viewport.showControls && <OrbitControls makeDefault />}
+
+      <Lights />
+      <OrthographicCamera
+        makeDefault
+        zoom={50}
+        position={[0, 0, 20]}
+        near={-100}
+        far={100}
+      />
+      {plane.enabled && <Plane />}
+
+      {!metaballs.enabled ? (
+        <>
+          <LiquidSphere
+            scale={viewport.scale}
+            position={[-8, 0, 0]}
+            colors={{
+              u_color_0: { value: hexToRGBA(sphere1.u_color_0) },
+              u_color_1: { value: hexToRGBA(sphere1.u_color_1) },
+              u_color_2: { value: hexToRGBA(sphere1.u_color_2) },
+            }}
+            wireframe={renderer.wireframe}
+            shaderConfig={shaderConfig}
+          />
+          <LiquidSphere
+            scale={viewport.scale}
+            position={[0, 0, 0]}
+            colors={{
+              u_color_0: { value: hexToRGBA(sphere2.u_color_0) },
+              u_color_1: { value: hexToRGBA(sphere2.u_color_1) },
+              u_color_2: { value: hexToRGBA(sphere2.u_color_2) },
+            }}
+            wireframe={renderer.wireframe}
+            shaderConfig={shaderConfig}
+          />
+          <LiquidSphere
+            scale={viewport.scale}
+            position={[8, 0, 0]}
+            colors={{
+              u_color_0: { value: hexToRGBA(sphere3.u_color_0) },
+              u_color_1: { value: hexToRGBA(sphere3.u_color_1) },
+              u_color_2: { value: hexToRGBA(sphere3.u_color_2) },
+            }}
+            wireframe={renderer.wireframe}
+            shaderConfig={shaderConfig}
+          />
+        </>
+      ) : (
+        <MetaballEffect
+          wireframe={renderer.wireframe}
+          colors={[sphere1, sphere2, sphere3]}
+          enabled={metaballs.enabled}
+        />
+      )}
+    </Canvas>
+  );
+};
+
+const useConfig = () => {
   const viewport = useControls("viewport", {
     debug: {
       value: true,
@@ -36,7 +139,6 @@ export const Scene = () => {
       label: "Sphere Scale",
     },
   });
-
   const metaballs = useControls("effect", {
     enabled: {
       value: false,
@@ -184,96 +286,15 @@ export const Scene = () => {
     },
   });
 
-  const shaderConfig = useMemo(
-    () => ({
-      vertex: {
-        distortionAmount: shader.distortionAmount,
-        timeScale: shader.timeScale,
-        distortionWeights: shader.distortionWeights as [number, number, number],
-      },
-      fragment: {
-        noiseScale: shader.noiseScale,
-        noiseSpeed: shader.noiseSpeed,
-        noiseIntensity: shader.noiseIntensity,
-        noiseWeights: shader.noiseWeights as [number, number, number],
-        blendSoftness: shader.blendSoftness,
-        flowSpeed: shader.flowSpeed,
-      },
-    }),
-    [shader]
-  );
-
-  return (
-    <Canvas
-      shadows
-      gl={{
-        powerPreference: renderer.powerPreference as WebGLPowerPreference,
-        alpha: renderer.alpha,
-        antialias: renderer.antialias,
-        stencil: renderer.stencil,
-        depth: renderer.depth,
-      }}
-    >
-      {shadows.enabled && (
-        <SoftShadows size={shadows.size} samples={shadows.samples} />
-      )}
-
-      {viewport.debug && <DevHelpers />}
-      {viewport.showControls && <OrbitControls makeDefault />}
-
-      <Lights />
-      <OrthographicCamera
-        makeDefault
-        zoom={50}
-        position={[0, 0, 20]}
-        near={-100}
-        far={100}
-      />
-      {plane.enabled && <Plane />}
-
-      {!metaballs.enabled ? (
-        <>
-          <LiquidSphere
-            scale={viewport.scale}
-            position={[-8, 0, 0]}
-            colors={{
-              u_color_0: { value: hexToRGBA(sphere1.u_color_0) },
-              u_color_1: { value: hexToRGBA(sphere1.u_color_1) },
-              u_color_2: { value: hexToRGBA(sphere1.u_color_2) },
-            }}
-            wireframe={renderer.wireframe}
-            shaderConfig={shaderConfig}
-          />
-          <LiquidSphere
-            scale={viewport.scale}
-            position={[0, 0, 0]}
-            colors={{
-              u_color_0: { value: hexToRGBA(sphere2.u_color_0) },
-              u_color_1: { value: hexToRGBA(sphere2.u_color_1) },
-              u_color_2: { value: hexToRGBA(sphere2.u_color_2) },
-            }}
-            wireframe={renderer.wireframe}
-            shaderConfig={shaderConfig}
-          />
-          <LiquidSphere
-            scale={viewport.scale}
-            position={[8, 0, 0]}
-            colors={{
-              u_color_0: { value: hexToRGBA(sphere3.u_color_0) },
-              u_color_1: { value: hexToRGBA(sphere3.u_color_1) },
-              u_color_2: { value: hexToRGBA(sphere3.u_color_2) },
-            }}
-            wireframe={renderer.wireframe}
-            shaderConfig={shaderConfig}
-          />
-        </>
-      ) : (
-        <MetaballEffect
-          wireframe={renderer.wireframe}
-          colors={[sphere1, sphere2, sphere3]}
-          enabled={metaballs.enabled}
-        />
-      )}
-    </Canvas>
-  );
+  return {
+    viewport,
+    metaballs,
+    renderer,
+    shadows,
+    sphere1,
+    sphere2,
+    sphere3,
+    shader,
+    plane,
+  };
 };

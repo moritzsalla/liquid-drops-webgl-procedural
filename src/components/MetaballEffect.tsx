@@ -22,14 +22,8 @@ type MetaballEffectProps = {
   enabled: boolean;
 };
 
-export const MetaballEffect = ({
-  colors,
-  enabled,
-  wireframe,
-}: MetaballEffectProps) => {
-  const meshRef = useRef<MarchingCubes>(null!);
-
-  const metaballsConfig = useControls("metaballs", {
+const useConfig = () => {
+  return useControls("metaballs", {
     resolution: {
       value: 80,
       min: 14,
@@ -61,6 +55,15 @@ export const MetaballEffect = ({
       step: 0.1,
     },
   });
+};
+
+export const MetaballEffect = ({
+  colors,
+  enabled,
+  wireframe,
+}: MetaballEffectProps) => {
+  const meshRef = useRef<MarchingCubes>(null!);
+  const metaballsConfig = useConfig();
 
   useFrame(() => {
     if (!meshRef.current || !enabled) return;
