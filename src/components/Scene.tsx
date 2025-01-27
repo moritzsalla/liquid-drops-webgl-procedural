@@ -112,6 +112,7 @@ export const Scene = () => {
         </>
       ) : (
         <MetaballEffect
+          shaderConfig={shaderConfig}
           wireframe={renderer.wireframe}
           colors={[sphere1, sphere2, sphere3]}
           enabled={metaballs.enabled}
@@ -141,7 +142,7 @@ const useConfig = () => {
   });
   const metaballs = useControls("effect", {
     enabled: {
-      value: false,
+      value: true,
       label: "Use Metaballs",
     },
   });
