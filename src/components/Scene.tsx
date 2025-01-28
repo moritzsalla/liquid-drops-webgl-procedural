@@ -211,21 +211,30 @@ const useConfig = () => {
   });
 
   const sphere1 = useControls("Left Sphere", {
-    u_color_0: { value: "#DCC9A9", label: "Base" },
-    u_color_1: { value: "#EB4F1C", label: "Mid" },
-    u_color_2: { value: "#EB8E3C", label: "Highlight" },
+    u_color_0: { value: "#DCC9A9", label: "0%" },
+    u_color_1: { value: "#DCC9A9", label: "20%" },
+    u_color_2: { value: "#EB4F1C", label: "40%" },
+    u_color_3: { value: "#EB4F1C", label: "60%" },
+    u_color_4: { value: "#EB8E3C", label: "80%" },
+    u_color_5: { value: "#EB8E3C", label: "100%" },
   });
 
   const sphere2 = useControls("Center Sphere", {
-    u_color_0: { value: "#1A2749", label: "Base" },
-    u_color_1: { value: "#744B9F", label: "Mid" },
-    u_color_2: { value: "#D461E2", label: "Highlight" },
+    u_color_0: { value: "#DCC9A9", label: "0%" },
+    u_color_1: { value: "#DCC9A9", label: "20%" },
+    u_color_2: { value: "#EB4F1C", label: "40%" },
+    u_color_3: { value: "#EB4F1C", label: "60%" },
+    u_color_4: { value: "#EB8E3C", label: "80%" },
+    u_color_5: { value: "#EB8E3C", label: "100%" },
   });
 
   const sphere3 = useControls("Right Sphere", {
-    u_color_0: { value: "#16686A", label: "Base" },
-    u_color_1: { value: "#207AA2", label: "Mid" },
-    u_color_2: { value: "#2FD4E2", label: "Highlight" },
+    u_color_0: { value: "#DCC9A9", label: "0%" },
+    u_color_1: { value: "#DCC9A9", label: "20%" },
+    u_color_2: { value: "#EB4F1C", label: "40%" },
+    u_color_3: { value: "#EB4F1C", label: "60%" },
+    u_color_4: { value: "#EB8E3C", label: "80%" },
+    u_color_5: { value: "#EB8E3C", label: "100%" },
   });
 
   const shader = useControls({

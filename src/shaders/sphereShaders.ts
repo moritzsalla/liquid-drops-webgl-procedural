@@ -4,18 +4,27 @@ precision highp float;
 
 uniform vec2 u_resolution;
 uniform float u_time;
+uniform vec3 u_camera_position;
+uniform vec3 u_light_position;
+
+// Colors
 uniform vec4 u_color_0;
 uniform vec4 u_color_1;
 uniform vec4 u_color_2;
+uniform vec4 u_color_3;
+uniform vec4 u_color_4;
+uniform vec4 u_color_5;
+
+// Noise
 uniform float u_noiseScale;
 uniform float u_noiseSpeed;
 uniform float u_noiseIntensity;
 uniform vec3 u_noiseWeights;
-uniform float u_blendSoftness;
 uniform float u_flowSpeed;
 uniform vec2 u_offset;
-uniform vec3 u_camera_position;
-uniform vec3 u_light_position;
+
+// Shadows
+uniform float u_blendSoftness;
 
 varying vec2 vUv;
 varying vec3 vNormal;
@@ -115,12 +124,21 @@ uv += u_offset;
 
     // Calculate base color
     vec4 color;
-    if (combined < 0.5) {
-        float t = smoothstep(0.0, 0.5, combined);
+    if (combined < 0.2) {
+        float t = smoothstep(0.0, 0.2, combined);
         color = mix(u_color_0, u_color_1, t);
-    } else {
-        float t = smoothstep(0.5, 1.0, combined);
+    } else if (combined < 0.4) {
+        float t = smoothstep(0.2, 0.4, combined);
         color = mix(u_color_1, u_color_2, t);
+    } else if (combined < 0.6) {
+        float t = smoothstep(0.4, 0.6, combined);
+        color = mix(u_color_2, u_color_3, t);
+    } else if (combined < 0.8) {
+        float t = smoothstep(0.6, 0.8, combined);
+        color = mix(u_color_3, u_color_4, t);
+    } else {
+        float t = smoothstep(0.8, 1.0, combined);
+        color = mix(u_color_4, u_color_5, t);
     }
 
     // Apply lighting components
@@ -141,7 +159,10 @@ uv += u_offset;
     gl_FragColor = vec4(finalColor, color.a);
 }`;
 
-export const VERTEX_SHADER = `
+export const VERTEX_SHADER = `#ifdef GL_ES
+precision highp float;
+#endif
+
 varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vPosition;
