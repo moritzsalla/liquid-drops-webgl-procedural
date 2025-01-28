@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export const Plane = () => {
+export const Plane = ({ color }: { color: string }) => {
   return (
     <mesh
       position={[0, 0, -3]}
@@ -10,7 +10,7 @@ export const Plane = () => {
     >
       <planeGeometry args={[20, 20]} />
       <meshStandardMaterial
-        color="pink"
+        color={color}
         side={THREE.DoubleSide}
         opacity={0.5}
         transparent={true}

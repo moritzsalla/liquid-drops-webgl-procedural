@@ -2,8 +2,9 @@ import { animated } from "@react-spring/three";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { FRAGMENT_SHADER, VERTEX_SHADER } from "../shaders/sphereShaders";
 import { random } from "../utils/random";
+import { SPHERE_VERTEX_SHADER } from "../shaders/sphere/vertex";
+import { SPHERE_FRAGMENT_SHADER } from "../shaders/sphere/fragment";
 
 type Color = [number, number, number, number];
 type Colors = {
@@ -112,8 +113,8 @@ export const LiquidSphere = ({
     <animated.mesh ref={meshRef} scale={scale} position={position} castShadow>
       <sphereGeometry args={[1, 64, 64]} />
       <shaderMaterial
-        vertexShader={VERTEX_SHADER}
-        fragmentShader={FRAGMENT_SHADER}
+        vertexShader={SPHERE_VERTEX_SHADER}
+        fragmentShader={SPHERE_FRAGMENT_SHADER}
         uniforms={uniforms.current}
         transparent
         opacity={1}

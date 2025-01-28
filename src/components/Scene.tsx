@@ -49,6 +49,9 @@ export const Scene = () => {
   return (
     <Canvas
       shadows
+      style={{
+        background: "black",
+      }}
       gl={{
         powerPreference: renderer.powerPreference as WebGLPowerPreference,
         alpha: renderer.alpha,
@@ -72,7 +75,7 @@ export const Scene = () => {
         near={-100}
         far={100}
       />
-      {plane.enabled && <Plane />}
+      {plane.enabled && <Plane color={plane.color} />}
 
       {!metaballs.enabled ? (
         <>
@@ -211,30 +214,84 @@ const useConfig = () => {
   });
 
   const sphere1 = useControls("Left Sphere", {
-    u_color_0: { value: "#DCC9A9", label: "0%" },
-    u_color_1: { value: "#DCC9A9", label: "20%" },
-    u_color_2: { value: "#EB4F1C", label: "40%" },
-    u_color_3: { value: "#EB4F1C", label: "60%" },
-    u_color_4: { value: "#EB8E3C", label: "80%" },
-    u_color_5: { value: "#EB8E3C", label: "100%" },
+    u_color_0: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "0%",
+    },
+    u_color_1: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "20%",
+    },
+    u_color_2: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "40%",
+    },
+    u_color_3: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "60%",
+    },
+    u_color_4: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "80%",
+    },
+    u_color_5: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "100%",
+    },
   });
 
   const sphere2 = useControls("Center Sphere", {
-    u_color_0: { value: "#DCC9A9", label: "0%" },
-    u_color_1: { value: "#DCC9A9", label: "20%" },
-    u_color_2: { value: "#EB4F1C", label: "40%" },
-    u_color_3: { value: "#EB4F1C", label: "60%" },
-    u_color_4: { value: "#EB8E3C", label: "80%" },
-    u_color_5: { value: "#EB8E3C", label: "100%" },
+    u_color_0: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "0%",
+    },
+    u_color_1: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "20%",
+    },
+    u_color_2: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "40%",
+    },
+    u_color_3: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "60%",
+    },
+    u_color_4: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "80%",
+    },
+    u_color_5: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "100%",
+    },
   });
 
   const sphere3 = useControls("Right Sphere", {
-    u_color_0: { value: "#DCC9A9", label: "0%" },
-    u_color_1: { value: "#DCC9A9", label: "20%" },
-    u_color_2: { value: "#EB4F1C", label: "40%" },
-    u_color_3: { value: "#EB4F1C", label: "60%" },
-    u_color_4: { value: "#EB8E3C", label: "80%" },
-    u_color_5: { value: "#EB8E3C", label: "100%" },
+    u_color_0: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "0%",
+    },
+    u_color_1: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "20%",
+    },
+    u_color_2: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "40%",
+    },
+    u_color_3: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "60%",
+    },
+    u_color_4: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "80%",
+    },
+    u_color_5: {
+      value: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      label: "100%",
+    },
   });
 
   const shader = useControls({
@@ -303,10 +360,14 @@ const useConfig = () => {
     },
   });
 
-  const plane = useControls("Plane", {
+  const plane = useControls("Background", {
     enabled: {
       value: true,
       label: "Show",
+    },
+    color: {
+      value: "#966544",
+      label: "Color",
     },
   });
 
