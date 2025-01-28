@@ -1,8 +1,8 @@
 import { extend, useFrame, type Object3DNode } from "@react-three/fiber";
-import { useControls } from "leva";
 import { useRef } from "react";
 import * as THREE from "three";
 import { MarchingCubes } from "three/examples/jsm/objects/MarchingCubes";
+import { VERTEX_SHADER, FRAGMENT_SHADER } from "../shaders/sphereShaders";
 
 extend({ MarchingCubes });
 
@@ -12,104 +12,87 @@ declare module "@react-three/fiber" {
   }
 }
 
-type MetaballEffectProps = {
-  colors: Array<{
-    u_color_0: string;
-    u_color_1: string;
-    u_color_2: string;
-  }>;
-  wireframe: boolean;
-  enabled: boolean;
-};
+export const MetaballEffect = () => {
+  const meshRef = useRef<MarchingCubes>(null);
+  const ballPositions = useRef([
+    new THREE.Vector3(0.8, 0.4, 0.4),
+    new THREE.Vector3(0.24, 0.5, 0.5),
+    new THREE.Vector3(0.2, 0.55, 0.55),
+  ]);
+  const uniforms = useRef({
+    u_resolution: { value: [window.innerWidth, window.innerHeight] },
+    u_time: { value: 0 },
+    u_time_offset: { value: Math.random() * 100 }, // Random offset for variation
+    u_distortionAmount: { value: 0.2 }, // Increased for visibility
+    u_timeScale: { value: 1.0 }, // Increased for more obvious movement
+    u_distortionWeights: { value: new THREE.Vector3(1.0, 1.0, 1.0) },
+    u_merge: { value: false },
+    u_mergeProgress: { value: 0.0 },
+    u_targetPosition: { value: new THREE.Vector3() },
+    u_sphereIndex: { value: 0 },
+    u_noiseScale: { value: 1.0 },
+    u_noiseSpeed: { value: 1.0 },
+    u_noiseIntensity: { value: 0.5 },
+    u_noiseWeights: { value: new THREE.Vector3(0.5, 0.3, 0.2) },
+    u_blendSoftness: { value: 0.1 },
+    u_flowSpeed: { value: 1.0 },
+    u_offset: { value: new THREE.Vector2(0, 0) },
+    u_camera_position: { value: new THREE.Vector3() },
+    u_light_position: { value: new THREE.Vector3(-40, 40, 10) },
 
-const useConfig = () => {
-  return useControls("metaballs", {
-    resolution: {
-      value: 80,
-      min: 14,
-      max: 100,
-      step: 1,
-    },
-    isolation: {
-      value: 80,
-      min: 10,
-      max: 300,
-      step: 1,
-    },
-    strength: {
-      value: 0.5,
-      min: 0.1,
-      max: 5.0,
-      step: 0.1,
-    },
-    scale: {
-      value: 16,
-      min: 1,
-      max: 50,
-      step: 1,
-    },
-    subtract: {
-      value: 12,
-      min: 1,
-      max: 20,
-      step: 0.1,
-    },
+    // Ball 1 gradient (Deep Red to Bright Red)
+    u_color_0_start: { value: new THREE.Vector4(0.5, 0, 0, 1) },
+    u_color_0_end: { value: new THREE.Vector4(1, 0, 0, 1) },
+
+    // Ball 2 gradient (Deep Green to Bright Green)
+    u_color_1_start: { value: new THREE.Vector4(0, 0.5, 0, 1) },
+    u_color_1_end: { value: new THREE.Vector4(0, 1, 0, 1) },
+
+    // Ball 3 gradient (Deep Blue to Bright Blue)
+    u_color_2_start: { value: new THREE.Vector4(0, 0, 0.5, 1) },
+    u_color_2_end: { value: new THREE.Vector4(0, 0, 1, 1) },
+
+    u_ball1_pos: { value: ballPositions.current[0] },
+    u_ball2_pos: { value: ballPositions.current[1] },
+    u_ball3_pos: { value: ballPositions.current[2] },
   });
-};
 
-export const MetaballEffect = ({
-  colors,
-  enabled,
-  wireframe,
-}: MetaballEffectProps) => {
-  const meshRef = useRef<MarchingCubes>(null!);
-  const metaballsConfig = useConfig();
-
-  useFrame(() => {
-    if (!meshRef.current || !enabled) return;
+  useFrame((state) => {
+    if (!meshRef.current) return;
 
     meshRef.current.reset();
 
-    // Add three metaballs at scaled positions
-    const positions = [
-      [-3, 0, 0], // Left sphere
-      [0, 0, 0], // Center sphere
-      [3, 0, 0], // Right sphere
-    ];
+    // Animate the ball position using time
+    const time = state.clock.elapsedTime;
 
-    positions.forEach((pos, i) => {
-      meshRef.current.addBall(
-        pos[0] / metaballsConfig.scale + 0.5,
-        pos[1] / metaballsConfig.scale + 0.5,
-        pos[2] / metaballsConfig.scale + 0.5,
-        metaballsConfig.strength,
-        metaballsConfig.subtract
-      );
+    // Different subtract values will create different visual effects
+    ballPositions.current.forEach((pos, index) => {
+      meshRef.current?.addBall(pos.x, pos.y, pos.z, 0.5, 1);
+      // Update the uniform for this ball's position
+      uniforms.current[`u_ball${index + 1}_pos`].value.copy(pos);
     });
-
     meshRef.current.update();
-  });
 
-  if (!enabled) return null;
+    uniforms.current.u_time.value = time;
+    uniforms.current.u_camera_position.value.copy(state.camera.position);
+  });
 
   return (
     <marchingCubes
       ref={meshRef}
       args={[
-        metaballsConfig.resolution,
-        new THREE.MeshStandardMaterial({ color: "#9c0000" }),
+        28 * 2,
+        new THREE.ShaderMaterial({
+          wireframe: false,
+          uniforms: uniforms.current,
+          vertexShader: VERTEX_SHADER,
+          fragmentShader: FRAGMENT_SHADER,
+        }),
         true,
         true,
       ]}
-      isolation={metaballsConfig.isolation}
-      scale={metaballsConfig.scale}
-    >
-      <meshStandardMaterial
-        wireframe={wireframe}
-        roughness={0.1}
-        metalness={0.3}
-        color={colors[0].u_color_0}
-      />
-    </marchingCubes>
+      isolation={50}
+      scale={10}
+    />
   );
 };

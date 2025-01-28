@@ -4,9 +4,6 @@ precision highp float;
 
 uniform vec2 u_resolution;
 uniform float u_time;
-uniform vec4 u_color_0;
-uniform vec4 u_color_1;
-uniform vec4 u_color_2;
 uniform float u_noiseScale;
 uniform float u_noiseSpeed;
 uniform float u_noiseIntensity;
@@ -16,6 +13,17 @@ uniform float u_flowSpeed;
 uniform vec2 u_offset;
 uniform vec3 u_camera_position;
 uniform vec3 u_light_position;
+
+uniform vec4 u_color_0_start;
+uniform vec4 u_color_0_end;
+uniform vec4 u_color_1_start;
+uniform vec4 u_color_1_end;
+uniform vec4 u_color_2_start;
+uniform vec4 u_color_2_end;
+
+uniform vec3 u_ball1_pos;
+uniform vec3 u_ball2_pos;
+uniform vec3 u_ball3_pos;
 
 varying vec2 vUv;
 varying vec3 vNormal;
@@ -64,33 +72,17 @@ float calculateAO(vec3 normal, vec3 position) {
 }
 
 void main() {
-    // Calculate lighting vectors
-    vec3 normal = normalize(vNormal);
-    vec3 lightDir = normalize(u_light_position - vPosition);
-    vec3 viewDir = normalize(u_camera_position - vPosition);
-    vec3 reflection = reflect(-viewDir, normal);
-    
-    // Calculate lighting components
-    float diffuse = max(dot(normal, lightDir), 0.0);
-    float specular = pow(max(dot(reflection, lightDir), 0.0), 32.0);
-    float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
-    
-    // Calculate ambient occlusion
-    float ao = calculateAO(normal, vPosition);
-    
-    // Calculate rim lighting
-    float rim = 1.0 - max(dot(normal, viewDir), 0.0);
-    rim = pow(rim, 3.0);
-    
-    // Get UV coordinates (sphere mapping)
-    vec2 uv = vUv; 
+    // Calculate distances to each ball center
+    float d1 = length(vPosition - u_ball1_pos);
+    float d2 = length(vPosition - u_ball2_pos);
+    float d3 = length(vPosition - u_ball3_pos);
 
-    // Rotate UVs to move seam to back
-float rotation = 0.25; // Rotates 180 degrees (0.5 turns)
-float angle = atan(vPosition.z, vPosition.x) / (2.0 * 3.14159) + 0.5;
-uv.x = fract(uv.x + rotation);
-uv += u_offset;
-
+    // Get UV coordinates and create noise pattern
+    vec2 uv = vUv;
+    float rotation = 0.25;
+    float angle = atan(vPosition.z, vPosition.x) / (2.0 * 3.14159) + 0.5;
+    uv.x = fract(uv.x + rotation);
+    uv += u_offset;
 
     // Create flowing movement
     float flowTime = u_time * u_flowSpeed;
@@ -104,41 +96,38 @@ uv += u_offset;
     float n2 = noise((uv - flow * 0.8) * u_noiseScale * 6.0);
     float n3 = noise((uv + flow * 1.2) * u_noiseScale * 8.0);
 
-    float combined = (
+    float noisePattern = (
         n1 * u_noiseWeights.x +
         n2 * u_noiseWeights.y +
         n3 * u_noiseWeights.z
     ) / (u_noiseWeights.x + u_noiseWeights.y + u_noiseWeights.z);
 
-    combined = mix(0.5, combined, u_noiseIntensity);
-    combined = smoothBlend(combined, u_blendSoftness);
+    noisePattern = mix(0.5, noisePattern, u_noiseIntensity);
+    noisePattern = smoothBlend(noisePattern, u_blendSoftness);
 
-    // Calculate base color
-    vec4 color;
-    if (combined < 0.5) {
-        float t = smoothstep(0.0, 0.5, combined);
-        color = mix(u_color_0, u_color_1, t);
-    } else {
-        float t = smoothstep(0.5, 1.0, combined);
-        color = mix(u_color_1, u_color_2, t);
-    }
+    // Choose gradient based on closest ball
+    vec4 baseColor;
+  if (d1 <= d2 && d1 <= d3) {
+    baseColor = mix(u_color_0_start, u_color_0_end, noisePattern);
+} else if (d2 <= d3) {
+    baseColor = mix(u_color_1_start, u_color_1_end, noisePattern);
+} else {
+    baseColor = mix(u_color_2_start, u_color_2_end, noisePattern);
+}
 
-    // Apply lighting components
-    vec3 finalColor = color.rgb;
+
+    // Basic lighting
+    vec3 normal = normalize(vNormal);
+    vec3 lightDir = normalize(u_light_position - vPosition);
+    vec3 viewDir = normalize(u_camera_position - vPosition);
     
-    // Ambient light
-    float ambient = 0.8;
+    float diffuse = max(dot(normal, lightDir), 0.0);
+    float ambient = 0.3;
     
-    // Combine all lighting
-    // finalColor *= (ambient + diffuse * 0.6) * ao;  // Base lighting with AO
-    finalColor += specular * 0.4;  // Add specular highlights
-    finalColor += rim * 0.3 * color.rgb;  // Add rim lighting
-    finalColor = mix(finalColor, finalColor * (1.0 + fresnel), 0.2);  // Add fresnel
-    
-    // Ensure we don't exceed maximum brightness
+    vec3 finalColor = baseColor.rgb * (ambient + diffuse);
     finalColor = clamp(finalColor, 0.0, 1.0);
     
-    gl_FragColor = vec4(finalColor, color.a);
+    gl_FragColor = vec4(finalColor, 1.0);
 }`;
 
 export const VERTEX_SHADER = `
@@ -173,9 +162,9 @@ void main() {
     
     // Combine waves for more organic movement
     vec3 newPosition = vec3(
-        position.x + normal.x * (wave1 + wave2 + wave3),
-        position.y + normal.y * (wave1 + wave2 + wave3),
-        position.z + normal.z * (wave1 + wave2 + wave3)
+        position.x + (normal.x * (wave1 + wave2 + wave3)) * 0.001,
+        position.y + (normal.y * (wave1 + wave2 + wave3)) * 0.001,
+        position.z + (normal.z * (wave1 + wave2 + wave3)) * 0.001
     );
     
     // Transform vertex to world space
