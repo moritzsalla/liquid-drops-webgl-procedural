@@ -30,7 +30,7 @@ export const Scene = () => {
     sphere3,
   } = useConfig();
 
-  const shaderConfig = {
+  const sharedConfig = {
     vertex: {
       distortionAmount: shader.distortionAmount,
       timeScale: shader.timeScale,
@@ -79,35 +79,50 @@ export const Scene = () => {
           <LiquidSphere
             scale={viewport.scale}
             position={[-8, 0, 0]}
-            colors={{
-              u_color_0: { value: hexToRGBA(sphere1.u_color_0) },
-              u_color_1: { value: hexToRGBA(sphere1.u_color_1) },
-              u_color_2: { value: hexToRGBA(sphere1.u_color_2) },
-            }}
             wireframe={renderer.wireframe}
-            shaderConfig={shaderConfig}
+            shaderConfig={{
+              ...sharedConfig,
+              fragment: {
+                ...sharedConfig.fragment,
+                colors: {
+                  u_color_0: { value: hexToRGBA(sphere1.u_color_0) },
+                  u_color_1: { value: hexToRGBA(sphere1.u_color_1) },
+                  u_color_2: { value: hexToRGBA(sphere1.u_color_2) },
+                },
+              },
+            }}
           />
           <LiquidSphere
             scale={viewport.scale}
             position={[0, 0, 0]}
-            colors={{
-              u_color_0: { value: hexToRGBA(sphere2.u_color_0) },
-              u_color_1: { value: hexToRGBA(sphere2.u_color_1) },
-              u_color_2: { value: hexToRGBA(sphere2.u_color_2) },
-            }}
             wireframe={renderer.wireframe}
-            shaderConfig={shaderConfig}
+            shaderConfig={{
+              ...sharedConfig,
+              fragment: {
+                ...sharedConfig.fragment,
+                colors: {
+                  u_color_0: { value: hexToRGBA(sphere2.u_color_0) },
+                  u_color_1: { value: hexToRGBA(sphere2.u_color_1) },
+                  u_color_2: { value: hexToRGBA(sphere2.u_color_2) },
+                },
+              },
+            }}
           />
           <LiquidSphere
             scale={viewport.scale}
             position={[8, 0, 0]}
-            colors={{
-              u_color_0: { value: hexToRGBA(sphere3.u_color_0) },
-              u_color_1: { value: hexToRGBA(sphere3.u_color_1) },
-              u_color_2: { value: hexToRGBA(sphere3.u_color_2) },
-            }}
             wireframe={renderer.wireframe}
-            shaderConfig={shaderConfig}
+            shaderConfig={{
+              ...sharedConfig,
+              fragment: {
+                ...sharedConfig.fragment,
+                colors: {
+                  u_color_0: { value: hexToRGBA(sphere3.u_color_0) },
+                  u_color_1: { value: hexToRGBA(sphere3.u_color_1) },
+                  u_color_2: { value: hexToRGBA(sphere3.u_color_2) },
+                },
+              },
+            }}
           />
         </>
       ) : (
@@ -122,7 +137,7 @@ export const Scene = () => {
 };
 
 const useConfig = () => {
-  const viewport = useControls("viewport", {
+  const viewport = useControls("Viewport", {
     debug: {
       value: true,
       label: "Debug Mode",
@@ -139,14 +154,14 @@ const useConfig = () => {
       label: "Sphere Scale",
     },
   });
-  const metaballs = useControls("effect", {
+  const metaballs = useControls("Effect", {
     enabled: {
       value: false,
       label: "Use Metaballs",
     },
   });
 
-  const renderer = useControls("renderer", {
+  const renderer = useControls("Renderer", {
     wireframe: {
       value: false,
       label: "Wireframe",
@@ -174,40 +189,40 @@ const useConfig = () => {
     },
   });
 
-  const shadows = useControls("shadows", {
+  const shadows = useControls("Shadows", {
     enabled: {
       value: true,
-      label: "Enable Shadow Softness",
+      label: "Smoothing",
     },
     size: {
       value: 10,
       min: 1,
       max: 20,
       step: 1,
-      label: "Shadow Size",
+      label: "Size",
     },
     samples: {
       value: 10,
       min: 1,
       max: 20,
       step: 1,
-      label: "Shadow Samples",
+      label: "Samples",
     },
   });
 
-  const sphere1 = useControls("sphere1", {
+  const sphere1 = useControls("Left Sphere", {
     u_color_0: { value: "#DCC9A9", label: "Base" },
     u_color_1: { value: "#EB4F1C", label: "Mid" },
     u_color_2: { value: "#EB8E3C", label: "Highlight" },
   });
 
-  const sphere2 = useControls("sphere2", {
+  const sphere2 = useControls("Center Sphere", {
     u_color_0: { value: "#1A2749", label: "Base" },
     u_color_1: { value: "#744B9F", label: "Mid" },
     u_color_2: { value: "#D461E2", label: "Highlight" },
   });
 
-  const sphere3 = useControls("sphere3", {
+  const sphere3 = useControls("Right Sphere", {
     u_color_0: { value: "#16686A", label: "Base" },
     u_color_1: { value: "#207AA2", label: "Mid" },
     u_color_2: { value: "#2FD4E2", label: "Highlight" },
@@ -279,10 +294,10 @@ const useConfig = () => {
     },
   });
 
-  const plane = useControls("plane", {
+  const plane = useControls("Plane", {
     enabled: {
       value: true,
-      label: "Show Plane",
+      label: "Show",
     },
   });
 

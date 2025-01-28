@@ -25,13 +25,13 @@ export type ShaderConfig = {
     noiseWeights?: [number, number, number];
     blendSoftness: number;
     flowSpeed: number;
+    colors: Colors;
   };
 };
 
 type LiquidSphereProps = {
   scale?: any;
   position?: [number, number, number];
-  colors: Colors;
   wireframe?: boolean;
   shaderConfig: ShaderConfig;
 };
@@ -39,7 +39,6 @@ type LiquidSphereProps = {
 export const LiquidSphere = ({
   scale = [1, 1, 1],
   position = [0, 0, 0],
-  colors,
   wireframe = false,
   shaderConfig,
 }: LiquidSphereProps) => {
@@ -73,11 +72,19 @@ export const LiquidSphere = ({
     u_offset: { value: [random(0, 10), random(0, 10)] },
     u_camera_position: { value: new THREE.Vector3() },
     u_light_position: { value: new THREE.Vector3(-40, 40, 10) },
-    ...colors,
+
+    ...shaderConfig.fragment.colors,
   });
 
   // Update uniforms when config changes
   useEffect(() => {
+    // Update color uniforms on change
+    for (const key in shaderConfig.fragment.colors) {
+      const uniform = uniforms.current[key as keyof Colors];
+      uniform.value = shaderConfig.fragment.colors[key as keyof Colors].value;
+    }
+
+    // Other uniforms
     uniforms.current.u_distortionAmount.value =
       shaderConfig.vertex.distortionAmount;
     uniforms.current.u_timeScale.value = shaderConfig.vertex.timeScale;
@@ -90,18 +97,15 @@ export const LiquidSphere = ({
     uniforms.current.u_flowSpeed.value = shaderConfig.fragment.flowSpeed;
   }, [shaderConfig]);
 
-  useEffect(() => {
-    uniforms.current.u_resolution.value = [
-      window.innerWidth,
-      window.innerHeight,
-    ];
-  }, []);
+  // u_resolution
+  useResolutionUniform({
+    uniforms,
+  });
 
-  useFrame((state) => {
-    if (meshRef.current) {
-      uniforms.current.u_time.value = state.clock.elapsedTime;
-      uniforms.current.u_camera_position.value = state.camera.position;
-    }
+  // u_time
+  useTimeUniform({
+    meshRef,
+    uniforms,
   });
 
   return (
@@ -120,4 +124,32 @@ export const LiquidSphere = ({
       />
     </animated.mesh>
   );
+};
+
+const useResolutionUniform = ({
+  uniforms,
+}: {
+  uniforms: React.MutableRefObject<any>;
+}) => {
+  useEffect(() => {
+    uniforms.current.u_resolution.value = [
+      window.innerWidth,
+      window.innerHeight,
+    ];
+  }, [uniforms]);
+};
+
+const useTimeUniform = ({
+  meshRef,
+  uniforms,
+}: {
+  meshRef: React.MutableRefObject<THREE.Mesh | null>;
+  uniforms: React.MutableRefObject<any>;
+}) => {
+  useFrame((state) => {
+    if (meshRef.current) {
+      uniforms.current.u_time.value = state.clock.elapsedTime;
+      uniforms.current.u_camera_position.value = state.camera.position;
+    }
+  });
 };
