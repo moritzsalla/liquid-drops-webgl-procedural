@@ -110,7 +110,12 @@ export const LiquidSphere = ({
   });
 
   return (
-    <animated.mesh ref={meshRef} scale={scale} position={position} castShadow>
+    <animated.mesh
+      ref={meshRef}
+      scale={[scale, scale, scale * 0.25]}
+      position={position}
+      castShadow
+    >
       <sphereGeometry args={[1, 64, 64]} />
       <shaderMaterial
         vertexShader={SPHERE_VERTEX_SHADER}

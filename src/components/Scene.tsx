@@ -310,7 +310,7 @@ const useConfig = () => {
       label: "Time Scale",
     },
     distortionWeights: {
-      value: [1, 1, 1],
+      value: [1, 1, 0.0],
       min: 0,
       max: 1,
       step: 0.1,
