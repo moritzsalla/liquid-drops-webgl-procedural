@@ -72,15 +72,21 @@ float calculateAO(vec3 normal, vec3 position) {
     return 1.0 - ao * 0.25;
 }
 
-// New function to calculate inset shadow
 float calculateInsetShadow(vec3 normal, vec3 viewDir) {
     float NdotV = dot(normal, viewDir);
-    float shadowStrength = 0.3; // Adjust this value to control shadow intensity
-    float shadowFalloff = 3.0;  // Adjust this value to control how quickly the shadow fades
     
-    // Create a soft shadow that's stronger at grazing angles
-    float shadow = 1.0 - pow(NdotV, shadowFalloff);
-    return 1.0 - (shadow * shadowStrength);
+    // Focus more on edges with a sharper falloff
+    float edgeStrength = 0.6;
+    float edgeSharpness = 0.5;
+    
+    // Calculate edge darkening
+    float edge = pow(1.0 - abs(NdotV), edgeSharpness);
+    
+    // Create softer transition for edges
+    float softEdge = smoothstep(0.2, 0.8, edge) * edgeStrength;
+    
+    // Keep center bright
+    return 1.0 - softEdge;
 }
 
 void main() {
@@ -155,14 +161,13 @@ void main() {
     // Apply lighting components
     vec3 finalColor = color.rgb;
     
-    // Ambient light
-    float ambient = 0.8;
+   float ambient = 1.0;
     
-    // Combine all lighting with new inset shadow
-    finalColor *= (ambient + diffuse * 0.6) * ao * insetShadow;  // Apply inset shadow
-    finalColor += specular * 0.4;  // Add specular highlights
-    finalColor += rim * 0.3 * color.rgb;  // Add rim lighting
-    finalColor = mix(finalColor, finalColor * (1.0 + fresnel), 0.2);  // Add fresnel
+    // Modified lighting combination to preserve inner brightness
+    finalColor *= (ambient + diffuse * 0.6) * ao * insetShadow;
+    finalColor += specular * 0.3;
+    finalColor += rim * 0.25 * color.rgb;
+    finalColor = mix(finalColor, finalColor * (1.0 + fresnel), 0.15);
     
     // Ensure we don't exceed maximum brightness
     finalColor = clamp(finalColor, 0.0, 1.0);
