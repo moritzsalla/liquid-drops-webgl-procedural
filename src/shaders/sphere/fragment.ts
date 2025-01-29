@@ -72,6 +72,17 @@ float calculateAO(vec3 normal, vec3 position) {
     return 1.0 - ao * 0.25;
 }
 
+// New function to calculate inset shadow
+float calculateInsetShadow(vec3 normal, vec3 viewDir) {
+    float NdotV = dot(normal, viewDir);
+    float shadowStrength = 0.3; // Adjust this value to control shadow intensity
+    float shadowFalloff = 3.0;  // Adjust this value to control how quickly the shadow fades
+    
+    // Create a soft shadow that's stronger at grazing angles
+    float shadow = 1.0 - pow(NdotV, shadowFalloff);
+    return 1.0 - (shadow * shadowStrength);
+}
+
 void main() {
     // Calculate lighting vectors
     vec3 normal = normalize(vNormal);
@@ -87,19 +98,20 @@ void main() {
     // Calculate ambient occlusion
     float ao = calculateAO(normal, vPosition);
     
+    // Calculate inset shadow
+    float insetShadow = calculateInsetShadow(normal, viewDir);
+    
     // Calculate rim lighting
     float rim = 1.0 - max(dot(normal, viewDir), 0.0);
     rim = pow(rim, 3.0);
     
     // Get UV coordinates (sphere mapping)
-    vec2 uv = vUv; 
+    vec2 uv = vUv;
 
-    // Rotate UVs to move seam to back
-float rotation = 0.25; // Rotates 180 degrees (0.5 turns)
-float angle = atan(vPosition.z, vPosition.x) / (2.0 * 3.14159) + 0.5;
-uv.x = fract(uv.x + rotation);
-uv += u_offset;
-
+    float rotation = 0.25;
+    float angle = atan(vPosition.z, vPosition.x) / (2.0 * 3.14159) + 0.5;
+    uv.x = fract(uv.x + rotation);
+    uv += u_offset;
 
     // Create flowing movement
     float flowTime = u_time * u_flowSpeed;
@@ -108,38 +120,37 @@ uv += u_offset;
         cos(flowTime * 0.3 + uv.y * 3.14159) * 0.5
     );
 
-// Return to original noise code
-float n1 = noise((uv + flow) * u_noiseScale * 4.0);
-float n2 = noise((uv - flow * 0.8) * u_noiseScale * 6.0);
-float n3 = noise((uv + flow * 1.2) * u_noiseScale * 8.0);
+    float n1 = noise((uv + flow) * u_noiseScale * 4.0);
+    float n2 = noise((uv - flow * 0.8) * u_noiseScale * 6.0);
+    float n3 = noise((uv + flow * 1.2) * u_noiseScale * 8.0);
 
-float combined = (
-    n1 * u_noiseWeights.x +
-    n2 * u_noiseWeights.y +
-    n3 * u_noiseWeights.z
-) / (u_noiseWeights.x + u_noiseWeights.y + u_noiseWeights.z);
+    float combined = (
+        n1 * u_noiseWeights.x +
+        n2 * u_noiseWeights.y +
+        n3 * u_noiseWeights.z
+    ) / (u_noiseWeights.x + u_noiseWeights.y + u_noiseWeights.z);
 
-combined = mix(0.5, combined, u_noiseIntensity);
-combined = smoothBlend(combined, u_blendSoftness);
+    combined = mix(0.5, combined, u_noiseIntensity);
+    combined = smoothBlend(combined, u_blendSoftness);
 
     // Calculate base color
-  vec4 color;
-if (combined < 0.2) {
-    float t = smoothstep(0.0, 0.2, combined);
-    color = mix(u_color_0, u_color_1, t);
-} else if (combined < 0.4) {
-    float t = smoothstep(0.2, 0.4, combined);
-    color = mix(u_color_1, u_color_2, t);
-} else if (combined < 0.6) {
-    float t = smoothstep(0.4, 0.6, combined);
-    color = mix(u_color_2, u_color_3, t);
-} else if (combined < 0.8) {
-    float t = smoothstep(0.6, 0.8, combined);
-    color = mix(u_color_3, u_color_4, t);
-} else {
-    float t = smoothstep(0.8, 1.0, combined);
-    color = mix(u_color_4, u_color_5, t);
-}
+    vec4 color;
+    if (combined < 0.2) {
+        float t = smoothstep(0.0, 0.2, combined);
+        color = mix(u_color_0, u_color_1, t);
+    } else if (combined < 0.4) {
+        float t = smoothstep(0.2, 0.4, combined);
+        color = mix(u_color_1, u_color_2, t);
+    } else if (combined < 0.6) {
+        float t = smoothstep(0.4, 0.6, combined);
+        color = mix(u_color_2, u_color_3, t);
+    } else if (combined < 0.8) {
+        float t = smoothstep(0.6, 0.8, combined);
+        color = mix(u_color_3, u_color_4, t);
+    } else {
+        float t = smoothstep(0.8, 1.0, combined);
+        color = mix(u_color_4, u_color_5, t);
+    }
 
     // Apply lighting components
     vec3 finalColor = color.rgb;
@@ -147,8 +158,8 @@ if (combined < 0.2) {
     // Ambient light
     float ambient = 0.8;
     
-    // Combine all lighting
-    // finalColor *= (ambient + diffuse * 0.6) * ao;  // Base lighting with AO
+    // Combine all lighting with new inset shadow
+    finalColor *= (ambient + diffuse * 0.6) * ao * insetShadow;  // Apply inset shadow
     finalColor += specular * 0.4;  // Add specular highlights
     finalColor += rim * 0.3 * color.rgb;  // Add rim lighting
     finalColor = mix(finalColor, finalColor * (1.0 + fresnel), 0.2);  // Add fresnel
