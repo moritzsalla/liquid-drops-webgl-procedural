@@ -65,7 +65,7 @@ export const Scene = () => {
       )}
 
       <DevHelpers showPerspectiveHelpers={viewport.perspectiveHelpers} />
-      {viewport.showControls && (
+      {viewport.orbitControls && (
         <OrbitControls
           makeDefault
           enableDamping
@@ -81,10 +81,11 @@ export const Scene = () => {
       <Lights />
       <OrthographicCamera
         makeDefault
-        zoom={30}
-        position={[-15, 15, 30]}
+        zoom={viewport.orbitControls ? 30 : 50}
+        position={viewport.orbitControls ? [-15, 15, 30] : [0, 0, 0]}
         near={-100}
         far={100}
+        onUpdate={(self) => self.lookAt(0, 0, 0)}
       />
 
       {plane.enabled && <Plane color={plane.color} />}
@@ -157,9 +158,9 @@ const useConfig = () => {
       value: false,
       label: "Perspective Helpers",
     },
-    showControls: {
+    orbitControls: {
       value: true,
-      label: "Orbit Controls",
+      label: "Camera Controls",
     },
     scale: {
       value: 3,
