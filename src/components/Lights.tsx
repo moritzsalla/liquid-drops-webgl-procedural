@@ -3,8 +3,8 @@ export const Lights = () => {
     <>
       {/* Main directional light */}
       <directionalLight
-        position={[0, 0, 20]}
-        intensity={0.4}
+        position={[0, 0, 3]}
+        intensity={1.0}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -18,7 +18,7 @@ export const Lights = () => {
       {/* Fill light */}
       {/* <directionalLight position={[-5, 3, 0]} intensity={0.4} color="#b1e1ff" /> */}
       {/* Ambient light */}
-      {/* <ambientLight intensity={0.2} /> */}
+      {/* <ambientLight intensity={1.0} /> */}
     </>
   );
 };

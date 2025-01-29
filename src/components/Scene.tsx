@@ -64,17 +64,29 @@ export const Scene = () => {
         <SoftShadows size={shadows.size} samples={shadows.samples} />
       )}
 
-      {viewport.debug && <DevHelpers />}
-      {viewport.showControls && <OrbitControls makeDefault />}
+      <DevHelpers showPerspectiveHelpers={viewport.perspectiveHelpers} />
+      {viewport.showControls && (
+        <OrbitControls
+          makeDefault
+          enableDamping
+          dampingFactor={0.05}
+          rotateSpeed={0.5}
+          minPolarAngle={0}
+          maxPolarAngle={Math.PI}
+          minAzimuthAngle={-Math.PI / 2}
+          maxAzimuthAngle={Math.PI / 2}
+        />
+      )}
 
       <Lights />
       <OrthographicCamera
         makeDefault
-        zoom={50}
-        position={[0, 0, 20]}
+        zoom={30}
+        position={[-15, 15, 30]}
         near={-100}
         far={100}
       />
+
       {plane.enabled && <Plane color={plane.color} />}
 
       {!metaballs.enabled ? (
@@ -141,9 +153,9 @@ export const Scene = () => {
 
 const useConfig = () => {
   const viewport = useControls("Viewport", {
-    debug: {
-      value: true,
-      label: "Debug Mode",
+    perspectiveHelpers: {
+      value: false,
+      label: "Perspective Helpers",
     },
     showControls: {
       value: true,
@@ -170,7 +182,7 @@ const useConfig = () => {
       label: "Wireframe",
     },
     powerPreference: {
-      value: "low-power",
+      value: "high-performance",
       options: ["low-power", "high-performance", "default"],
       label: "Power Mode",
     },
@@ -179,11 +191,11 @@ const useConfig = () => {
       label: "Alpha",
     },
     antialias: {
-      value: false,
+      value: true,
       label: "Antialiasing",
     },
     stencil: {
-      value: false,
+      value: true,
       label: "Stencil Buffer",
     },
     depth: {
@@ -303,14 +315,14 @@ const useConfig = () => {
       label: "Distortion Amount",
     },
     timeScale: {
-      value: 0.2,
+      value: 0.14,
       min: 0,
       max: 2,
       step: 0.1,
       label: "Time Scale",
     },
     distortionWeights: {
-      value: [1, 1, 0.0],
+      value: [0.5, 0.5, 0.0],
       min: 0,
       max: 1,
       step: 0.1,
@@ -352,7 +364,7 @@ const useConfig = () => {
       label: "Blend Softness",
     },
     flowSpeed: {
-      value: 0.9,
+      value: 0.2,
       min: 0,
       max: 2,
       step: 0.1,
